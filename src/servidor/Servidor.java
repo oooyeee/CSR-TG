@@ -148,10 +148,13 @@ public class Servidor implements IServidor {
         // System.out.println("::: read " + String.valueOf(read) + " bytes");
         session.readBuffer.flip(); // ready to write
 
+        ByteBuffer chunk = session.readBuffer.duplicate().limit(read);
+
         if (this.messageCallback != null) {
-            this.messageCallback.accept(session, session.readBuffer.duplicate().limit(read)); // needs duplicate + limit (there is garbage after limit)
+            // this.messageCallback.accept(session, session.readBuffer.duplicate().limit(read)); // needs duplicate + limit (there is garbage after limit)
+            this.messageCallback.accept(session, chunk);
             session.readBuffer.compact(); // TODO, maybe not needed
-            session.readBuffer.clear(); // TODO, maybe not needed
+            // session.readBuffer.clear(); // TODO, maybe not needed
         }
     }
 

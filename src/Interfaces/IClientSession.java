@@ -2,10 +2,13 @@ package interfaces;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
+import java.util.List;
 
 public interface IClientSession {
     public String clienID();
+
     public SelectionKey clientKey();
+
     public int getOnlineCount();
 
     // write functions send message to single client of current client section
@@ -18,4 +21,7 @@ public interface IClientSession {
     public void broadcast(ByteBuffer buffer);
 
     public void disconnect();
+
+    public List<ByteBuffer> getDataChunks();
+    public void putDataChunk(ByteBuffer chunk);
 }

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import servidor.Servidor;
 
-public class Server {
+public class EchoServer {
 
     public static final int PORT = 1777;
 
@@ -29,8 +29,8 @@ public class Server {
                 // session.broadcast has overload for a String and a ByteBuffer
                 session.broadcast("Client [" +session.clienID()+"] just joined\n");
             })
-            .onMessage((session, msg)-> {
-                String message = StandardCharsets.UTF_8.decode(msg.duplicate()).toString();
+            .onMessage((session, data)-> {
+                String message = StandardCharsets.UTF_8.decode(data.duplicate()).toString();
                 String userMessage = "[" +session.clienID()+"]: " + message;
                 System.out.println(userMessage.trim());
                 // session.broadcast has overload for a String and a ByteBuffer

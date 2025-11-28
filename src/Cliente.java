@@ -32,13 +32,17 @@ public class Cliente {
             serverReader.setDaemon(true);
             serverReader.start();
 
-            System.out.println("Type your messages (or 'quit' to exit):");
+            System.out.println("Type your messages.\n1) quit - to exit\n2) test - to send big data string");
 
             // Main loop: send user input while socket is connected
             try (BufferedReader console = new BufferedReader(new InputStreamReader(System.in))) {
                 String userInput;
                 while (socket.isConnected() && (userInput = console.readLine()) != null) {
                     if ("quit".equalsIgnoreCase(userInput.trim())) {
+                        break;
+                    } else if ("test".equalsIgnoreCase(userInput.trim())) {
+                        String huge = "A".repeat(2000) + "B".repeat(2000) + "C".repeat(2000) + "\n";
+                        out.println(huge);  // sends with \n
                         break;
                     }
                     out.println(userInput);  // sends with \n

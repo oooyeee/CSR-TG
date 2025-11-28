@@ -9,6 +9,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import interfaces.IClientSession;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClientSession implements IClientSession {
 
@@ -18,6 +21,8 @@ public class ClientSession implements IClientSession {
     private SelectionKey clientKey;
     private ConcurrentHashMap<SelectionKey, ClientSession> allClients;
 
+
+    protected List<ByteBuffer> readChunks;
     protected ByteBuffer readBuffer;
     protected ByteBuffer pendingWrite;
 
@@ -30,6 +35,7 @@ public class ClientSession implements IClientSession {
 
         this.pendingWrite = null;
         this.readBuffer = ByteBuffer.allocate(2048);
+        this.readChunks = new ArrayList<>();
     }
 
     @Override
@@ -110,6 +116,16 @@ public class ClientSession implements IClientSession {
             System.err.println(e);
             //TODO ignore or what ?
         }
+    }
+
+    @Override
+    public List<ByteBuffer> getDataChunks() {
+        return this.readChunks;
+    }
+
+    @Override
+    public void putDataChunk(ByteBuffer chunk) {
+        this.readChunks.add(chunk);
     }
 
 }
