@@ -1,0 +1,21 @@
+package interfaces;
+
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+
+public interface IClientSession {
+    public String clienID();
+    public SelectionKey clientKey();
+    public int getOnlineCount();
+
+    // write functions send message to single client of current client section
+    public void write(String message);
+    public void write(ByteBuffer buffer);
+
+    // broadcast functions require implementation to have access to all sessions
+    // in order to send message to all clients
+    public void broadcast(String message);
+    public void broadcast(ByteBuffer buffer);
+
+    public void disconnect();
+}
