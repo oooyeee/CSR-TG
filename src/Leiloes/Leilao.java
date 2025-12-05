@@ -12,6 +12,7 @@ import java.util.UUID;
         private String vendedor;
         private Date dataCriacao;
         private static final long serialVersionUID = 1L;
+        private byte[] assinaturaVendedor;
 
         public ItemLeilao(String descricao, Date dataConclusao, double valorMinimo, String vendedor) {
             this.id = UUID.randomUUID().toString();
@@ -46,6 +47,14 @@ import java.util.UUID;
             return dataCriacao;
         }
 
+         public byte[] getAssinaturaVendedor() {
+        return assinaturaVendedor;
+        }
+
+        public void setAssinaturaVendedor(byte[] assinaturaVendedor) {
+        this.assinaturaVendedor = assinaturaVendedor;
+        }
+        
         /**
          * Retorna os dados que devem ser assinados para garantir não-repúdio
          */
@@ -68,4 +77,5 @@ import java.util.UUID;
                     '}';
         }
     }
+
 
