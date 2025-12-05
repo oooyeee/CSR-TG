@@ -1,15 +1,10 @@
 package Leiloes;
 
-import org.bouncycastle.asn1.tsp.MessageImprint;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.operator.jcajce.JcaSimpleSignerInfoVerifierBuilder;
-import org.bouncycastle.tsp.*;
-import org.bouncycastle.util.Store;
-import java.net.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.cert.*;
 import java.util.*;
+import java.nio.charset.StandardCharsets;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
@@ -23,7 +18,9 @@ import java.util.UUID;
         private Date dataCriacao;
         private static final long serialVersionUID = 1L;
         private byte[] assinaturaVendedor;
-
+        byte[] assinaturaVendedor;
+        byte[] timestampToken;
+        
         public ItemLeilao(String descricao, Date dataConclusao, double valorMinimo, String vendedor) {
             this.id = UUID.randomUUID().toString();
             this.descricao = descricao;
@@ -140,6 +137,7 @@ import java.util.UUID;
         System.out.println("Timestamp válido? " + verifyTimestamp(l.timestampToken, hash, tsaCert));
     }
 }
+
 
 
 
