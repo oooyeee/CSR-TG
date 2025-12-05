@@ -86,65 +86,61 @@ import java.util.UUID;
                     ", vendedor='" + vendedor + '\'' +
                     '}';
         }
-        // ----- Cripto utilitária -----
-    public static KeyPair gerarChaves() throws Exception {
-        KeyPairGenerator k = KeyPairGenerator.getInstance("RSA");
-        k.initialize(2048);
-        return k.generateKeyPair();
-    }
-
-
-    public static byte[] assinar(PrivateKey priv, String dados) throws Exception {
-        Signature s = Signature.getInstance("SHA256withRSA");
-        s.initSign(priv);
-        s.update(dados.getBytes(StandardCharsets.UTF_8));
-        return s.sign();
-    }
-
-
-    public static boolean verificar(PublicKey pub, String dados, byte[] assinatura) throws Exception {
-        Signature s = Signature.getInstance("SHA256withRSA");
-        s.initVerify(pub);
-        s.update(dados.getBytes(StandardCharsets.UTF_8));
-        return s.verify(assinatura);
-    }
-
-
-     public static byte[] sha256(byte[] in) throws Exception {
+        
+        // gera hash SHA-256
+    public static byte[] sha256(byte[] in) throws Exception {
         return MessageDigest.getInstance("SHA-256").digest(in);
     }
 
-
-// ----- Timestamp Simplificado -----
-    public static byte[] obterTimestamp(String url, byte[] hash) throws Exception {
-        TimeStampRequest req = new TimeStampRequestGenerator().generate(TSPAlgorithms.SHA256, hash);
-        byte[] reqBytes = req.getEncoded();
-
-
-        HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
-        c.setDoOutput(true);
-        c.setRequestMethod("POST");
-        c.setRequestProperty("Content-Type", "application/timestamp-query");
-        c.getOutputStream().write(reqBytes);
-        return c.getInputStream().readAllBytes();
+    // assina dados
+    public static byte[] sign(PrivateKey pk, byte[] dados) throws Exception {
+        Signature s = Signature.getInstance("SHA256withRSA");
+        s.initSign(pk); s.update(dados); return s.sign();
     }
 
+    public static boolean verify(PublicKey pub, byte[] dados, byte[] sig) throws Exception {
+        Signature s = Signature.getInstance("SHA256withRSA");
+        s.initVerify(pub); s.update(dados); return s.verify(sig);
+    }
 
-    public static boolean verificarTimestamp(byte[] tsBytes, byte[] hashOriginal) throws Exception {
-        TimeStampToken tok = new TimeStampResponse(tsBytes).getTimeStampToken();
-        if (tok == null) 
-            return false;
-            // Confere hash
-            if (!Arrays.equals(hashOriginal, tok.getTimeStampInfo().getMessageImprintDigest()))
-                return false;
-        // Verifica assinatura da TSA
-        Store<X509CertificateHolder> certs = tok.getCertificates();
-        var matches = certs.getMatches(tok.getSID());
-        X509CertificateHolder tsaCert = matches.iterator().next();
-        tok.validate(new JcaSimpleSignerInfoVerifierBuilder().build(tsaCert));
-    return true;
+    // carimbo de tempo simples embutido
+    public static byte[] createTimestamp(PrivateKey tsaKey, X509Certificate tsaCert, byte[] hash) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(hash);
+        long t = System.currentTimeMillis();
+        baos.write(ByteBuffer.allocate(8).putLong(t).array());
+        byte[] data = baos.toByteArray();
+        byte[] sig = sign(tsaKey, data);
+        ByteArrayOutputStream token = new ByteArrayOutputStream();
+        token.write(data); token.write(sig);
+        return token.toByteArray();
+    }
+
+    public static boolean verifyTimestamp(byte[] token, byte[] hash, X509Certificate tsaCert) throws Exception {
+        byte[] data = Arrays.copyOf(token, hash.length + 8);
+        byte[] sig = Arrays.copyOfRange(token, hash.length + 8, token.length);
+        if (!Arrays.equals(hash, Arrays.copyOfRange(data, 0, hash.length))) return false;
+        return verify(tsaCert.getPublicKey(), data, sig);
+    }
+
+    public static void main(String[] args) throws Exception {
+        // Exemplo com JKS
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream("tsa_keystore.jks"), "changeit".toCharArray());
+        PrivateKey tsaKey = (PrivateKey) ks.getKey("tsa", "changeit".toCharArray());
+        X509Certificate tsaCert = (X509Certificate) ks.getCertificate("tsa");
+
+        Leilao l = new Leilao("Quadro", new Date(System.currentTimeMillis() + 86400000), 500, "Joao");
+        KeyPair kp = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+        l.assinaturaVendedor = sign(kp.getPrivate(), l.dados().getBytes(StandardCharsets.UTF_8));
+        System.out.println("Assinatura vendedor válida? " + verify(kp.getPublic(), l.dados().getBytes(StandardCharsets.UTF_8), l.assinaturaVendedor));
+
+        byte[] hash = sha256(l.dados().getBytes(StandardCharsets.UTF_8));
+        l.timestampToken = createTimestamp(tsaKey, tsaCert, hash);
+        System.out.println("Timestamp válido? " + verifyTimestamp(l.timestampToken, hash, tsaCert));
     }
 }
+
 
 
 
