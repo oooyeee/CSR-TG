@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
-    public class Leiloes extends SecureServer {
+    public class Leilao {
         private String id;
         private String descricao;
         private Date dataConclusao;
@@ -68,3 +68,4 @@ import java.util.UUID;
                     '}';
         }
     }
+
