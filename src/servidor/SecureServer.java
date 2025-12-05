@@ -7,6 +7,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import interfaces.IClientSession;
+import interfaces.ICommandRouter;
 import interfaces.ISecureCipher;
 
 import interfaces.IServidorSeguro;
@@ -132,5 +133,10 @@ public class SecureServer extends ServidorBase implements IServidorSeguro {
         }
 
         this.cipherClass = secureCipherClass;
+    }
+
+    @Override
+    public void useCommandRouter(ICommandRouter router) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
