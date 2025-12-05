@@ -1,8 +1,8 @@
 package interfaces;
 
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public interface ICommandRouter {
-    public ICommandRouter onCommand(String command, Consumer<IClientSession> session);
-    public ICommandRouter onType(byte command, Consumer<IClientSession> session);
+    public ICommandRouter onCommand(String command, BiConsumer<IClientSession, String> callback);
+    public ICommandRouter onType(byte command, BiConsumer<IClientSession, byte[]> callback);
 }

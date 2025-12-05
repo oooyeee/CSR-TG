@@ -7,7 +7,6 @@ import servidor.FrameValidator;
 import servidor.SecureCipher;
 import servidor.SecureServer;
 
-
 public class Test3 {
 
     public static void main(String[] args) {
@@ -17,6 +16,13 @@ public class Test3 {
         servidorLeiloes.useSecureCipherClass(SecureCipher.class);
 
         CommandRouter router = new CommandRouter();
+
+        router.onCommand("HELLO", (session, msg) -> {
+            // PROCESS STUFF HERE
+            // use session.clientID()
+            // parse msg 
+            // etc
+        });
 
         servidorLeiloes.useCommandRouter(router);
 
@@ -39,7 +45,6 @@ public class Test3 {
         //     System.out.println("in Test 3 on Disco");
         //     session.disconnect();
         // });
-
         servidorLeiloes.listen();
     }
 
