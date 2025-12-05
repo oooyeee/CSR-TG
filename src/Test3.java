@@ -1,6 +1,8 @@
 
 import java.nio.ByteBuffer;
 
+import interfaces.ICommandRouter;
+import servidor.CommandRouter;
 import servidor.FrameValidator;
 import servidor.SecureCipher;
 import servidor.SecureServer;
@@ -13,6 +15,10 @@ public class Test3 {
 
         servidorLeiloes.useValidator(new FrameValidator());
         servidorLeiloes.useSecureCipherClass(SecureCipher.class);
+
+        CommandRouter router = new CommandRouter();
+
+        servidorLeiloes.useCommandRouter(router);
 
         servidorLeiloes.init();
 
