@@ -1,9 +1,10 @@
 package servidor;
 
-import java.io.IOException;
+// import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
+// import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -13,32 +14,39 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import interfaces.IClientSession;
+import interfaces.ISecureCipher;
 import interfaces.IServidor;
+import interfaces.IValidator;
 
-public class Servidor implements IServidor {
+// single threaded nio server
+public class ServidorBase implements IServidor {
 
-    private int port;
-    private boolean isInitiated;
+    final private int port;
+    final private int bufferSizeKB;
+    protected boolean isInitiated;
     private ServerSocketChannel serverChannel;
     private Selector selector;
-
-    private Consumer<IClientSession> acceptCallback;
-    private BiConsumer<IClientSession, ByteBuffer> messageCallback;
-    private Consumer<IClientSession> disconnectCallback;
-
     // Connected clients
     private final ConcurrentHashMap<SelectionKey, ClientSession> clients = new ConcurrentHashMap<>();
 
-    public Servidor(int port) {
-        this.port = port;
+    private Consumer<IClientSession> acceptCallback;
+    private BiConsumer<IClientSession, ByteBuffer> dataCallback;
+    private Consumer<IClientSession> disconnectCallback;
 
+    public ServidorBase(int port) {
+        this(port, 8);
+    }
+
+    public ServidorBase(int port, int bufferSizeKB) {
+        this.port = port;
+        this.bufferSizeKB = bufferSizeKB;
         this.acceptCallback = null;
-        this.messageCallback = null;
+        this.dataCallback = null;
         this.disconnectCallback = null;
     }
 
     @Override
-    public IServidor init() {
+    public ServidorBase init() {
         if (isInitiated == true) {
             return this;
         }
@@ -57,7 +65,6 @@ public class Servidor implements IServidor {
 
         isInitiated = true;
         return this;
-
     }
 
     @Override
@@ -75,7 +82,6 @@ public class Servidor implements IServidor {
                 for (SelectionKey key : selector.selectedKeys()) {
 
                     // if(!key.isValid()) continue;
-
                     if (key.isAcceptable()) {
                         handleAccept();
                     }
@@ -85,19 +91,25 @@ public class Servidor implements IServidor {
                         handleRead(key);
                     }
 
-                    if(!key.isValid()) continue; // key channel may be disconnected in the handleRead and become invalid
+                    if (!key.isValid()) {
+                        continue; // key channel may be disconnected in the handleRead and become invalid
+                    }
 
+                    // TODO, maybe put isWritable() before isReadable() ?
                     if (key.isWritable()) {
                         handleWrite(key);
                     }
                     // if(!key.isValid()) continue;
                 }
-                selector.selectedKeys().clear();
+                // selector.selectedKeys().clear();
 
             } catch (Exception e) {
                 System.err.println("Something wrong with selectors or channels...");
                 System.err.println(e.getMessage());
                 e.printStackTrace();
+
+            } finally {
+                selector.selectedKeys().clear();
             }
         }
     }
@@ -130,8 +142,14 @@ public class Servidor implements IServidor {
         try {
             session.readBuffer.clear();
             read = client.read(session.readBuffer); // throws IOException
+        } catch (SocketException e) {
+            System.err.println("Client disconnected HARD"); // sometimes, if client terminates with ctrl+c
+            System.err.println(e.getMessage());
+            session.disconnect();
+            return;
         } catch (Exception e) {
             System.err.println("Error reading buffer from client channel");
+            e.printStackTrace();
             System.err.println(e);
             read = -1;
         }
@@ -141,20 +159,24 @@ public class Servidor implements IServidor {
         }
 
         if (read == -1) { // client disconnected
-            this.disconnectCallback.accept(session);
+            if (this.disconnectCallback != null) {
+                this.disconnectCallback.accept(session);
+
+                if (!session.isDisconnectCalled()) {
+                    session.disconnect();
+                }
+            } else {
+                session.disconnect();
+            }
             return;
         }
 
-        // System.out.println("::: read " + String.valueOf(read) + " bytes");
         session.readBuffer.flip(); // ready to write
 
         ByteBuffer chunk = session.readBuffer.duplicate().limit(read);
 
-        if (this.messageCallback != null) {
-            // this.messageCallback.accept(session, session.readBuffer.duplicate().limit(read)); // needs duplicate + limit (there is garbage after limit)
-            this.messageCallback.accept(session, chunk);
-            session.readBuffer.compact(); // TODO, maybe not needed
-            // session.readBuffer.clear(); // TODO, maybe not needed
+        if (this.dataCallback != null) {
+            this.dataCallback.accept(session, chunk);
         }
     }
 
@@ -164,7 +186,7 @@ public class Servidor implements IServidor {
             clientChannel.configureBlocking(false); // throws IOException
             SelectionKey clientKey = clientChannel.register(selector, SelectionKey.OP_READ); // throws ClosedChannelException
 
-            ClientSession session = new ClientSession(clientKey, this.clients);
+            ClientSession session = new ClientSession(clientKey, this.clients, this.bufferSizeKB);
             clientKey.attach(session);
             clients.put(clientKey, session);
 
@@ -180,21 +202,20 @@ public class Servidor implements IServidor {
     }
 
     @Override
-    public IServidor onAccept(Consumer<IClientSession> callback) {
+    public ServidorBase onAccept(Consumer<IClientSession> callback) {
         this.acceptCallback = callback;
         return this;
     }
 
     @Override
-    public IServidor onMessage(BiConsumer<IClientSession, ByteBuffer> callback) {
-        this.messageCallback = callback;
+    public ServidorBase onData(BiConsumer<IClientSession, ByteBuffer> callback) {
+        this.dataCallback = callback;
         return this;
     }
 
     @Override
-    public IServidor onDisconnect(Consumer<IClientSession> callback) {
+    public ServidorBase onDisconnect(Consumer<IClientSession> callback) {
         this.disconnectCallback = callback;
         return this;
     }
-
 }

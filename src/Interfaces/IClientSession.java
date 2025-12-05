@@ -5,11 +5,14 @@ import java.nio.channels.SelectionKey;
 import java.util.List;
 
 public interface IClientSession {
-    public String clienID();
+    public String clientID();
 
     public SelectionKey clientKey();
 
     public int getOnlineCount();
+    public boolean isSecure();
+    public ISecureCipher getCipher();
+    public void setCipherOnce(ISecureCipher cipher);
 
     // write functions send message to single client of current client section
     public void write(String message);
@@ -21,6 +24,7 @@ public interface IClientSession {
     public void broadcast(ByteBuffer buffer);
 
     public void disconnect();
+    public boolean isDisconnectCalled();
 
     public List<ByteBuffer> getDataChunks();
     public void putDataChunk(ByteBuffer chunk);

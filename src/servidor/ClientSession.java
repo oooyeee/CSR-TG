@@ -5,11 +5,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import interfaces.IClientSession;
-import java.util.ArrayDeque;
+import interfaces.ISecureCipher;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,25 +20,33 @@ public class ClientSession implements IClientSession {
     private SelectionKey clientKey;
     private ConcurrentHashMap<SelectionKey, ClientSession> allClients;
 
-
+    protected boolean isSecure;
+    protected ISecureCipher cipher;
     protected List<ByteBuffer> readChunks;
     protected ByteBuffer readBuffer;
     protected ByteBuffer pendingWrite;
 
-    public ClientSession(SelectionKey clientKey, ConcurrentHashMap<SelectionKey, ClientSession> allClients) {
+    private boolean isDisconnectCalled;
+
+    public ClientSession(SelectionKey clientKey, ConcurrentHashMap<SelectionKey, ClientSession> allClients, int bufferSizeKB) {
         this.clientKey = clientKey;
         this.allClients = allClients;
 
         // this.clientID = UUID.randomUUID().toString().substring(0, 8);
         this.clientID = String.valueOf(id_count++);
 
+        this.isSecure = false;
+        this.cipher = null;
+
         this.pendingWrite = null;
-        this.readBuffer = ByteBuffer.allocate(2048);
+        this.readBuffer = ByteBuffer.allocate(1024 * bufferSizeKB);
         this.readChunks = new ArrayList<>();
+
+        this.isDisconnectCalled = false;
     }
 
     @Override
-    public String clienID() {
+    public String clientID() {
         return this.clientID;
     }
 
@@ -114,7 +121,9 @@ public class ClientSession implements IClientSession {
         } catch (IOException e) {
             System.err.println("Failed to close the connection for client: " + clientID);
             System.err.println(e);
-            //TODO ignore or what ?
+            //TODO, ignore ?
+        } finally {
+            this.isDisconnectCalled = true;
         }
     }
 
@@ -128,4 +137,28 @@ public class ClientSession implements IClientSession {
         this.readChunks.add(chunk);
     }
 
+    @Override
+    public boolean isSecure(){
+        if (this.cipher != null && this.isSecure) return true;
+        
+        return false;
+    }
+
+    @Override
+    public ISecureCipher getCipher(){
+        return this.cipher;
+    }
+
+
+    @Override
+    public void setCipherOnce(ISecureCipher cipher) {
+        if (this.cipher != null) return;
+        
+        this.cipher = cipher;
+    }
+
+    @Override
+    public boolean isDisconnectCalled(){
+        return this.isDisconnectCalled;
+    }
 }
