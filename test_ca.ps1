@@ -14,7 +14,7 @@ javac -Xdiags:verbose -Xlint:unchecked -d out $java_files
 # sleep 1
 
 # java -cp out testes.NioClient
-java -cp out testes.Test4
+java -cp out testes.Test5
 
 # echo $pwd
 

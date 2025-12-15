@@ -3,6 +3,13 @@ package interfaces;
 import java.util.function.BiConsumer;
 
 public interface ICommandRouter {
-    public ICommandRouter onCommand(String command, BiConsumer<IClientSession, String> callback);
-    public ICommandRouter onType(byte command, BiConsumer<IClientSession, byte[]> callback);
+
+    public void onCommand(String command, BiConsumer<IClientSession, String> callback);
+
+    public void commandFallback(BiConsumer<IClientSession, String> callback); // for unsupported commands
+
+    public void parseCommand(IClientSession session, String message);
+
+    // public void write(IClientSession session, ByteBuffer data);
+    // public void addWritePipeline(BiPredicate<IClientSession, ByteBuffer> callback);
 }

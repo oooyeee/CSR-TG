@@ -1,31 +1,39 @@
 package interfaces;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
-import java.util.List;
 
 public interface IClientSession {
     public String clientID();
 
     public SelectionKey clientKey();
 
-    public int getOnlineCount();
-    public boolean isSecure();
-    public ISecureCipher getCipher();
-    public void setCipherOnce(ISecureCipher cipher);
+    public void write(String message) throws IOException;
 
-    // write functions send message to single client of current client section
-    public void write(String message);
-    public void write(ByteBuffer buffer);
+    public void write(ByteBuffer buffer) throws IOException;
 
-    // broadcast functions require implementation to have access to all sessions
-    // in order to send message to all clients
-    public void broadcast(String message);
-    public void broadcast(ByteBuffer buffer);
+    public ByteBuffer getReadBuffer();
 
-    public void disconnect();
-    public boolean isDisconnectCalled();
+    public void injectWriteFiltersChain(IMiddlewareList writeFiltersChain);
 
-    public List<ByteBuffer> getDataChunks();
-    public void putDataChunk(ByteBuffer chunk);
+    public SessionState getSecureState();
+    public WriteState getWriteState();
+
+    public void setSecureState(SessionState newState);
+    public void setWriteState(WriteState newState);
+
+    public boolean isTrusted();
+    public void setTrusted(boolean value);
+
+    public static enum SessionState {
+        NEED_HANDSHAKE,
+        SECURE
+    }
+
+    public static enum WriteState {
+        READY,
+        NOT_READY
+    }
+
 }

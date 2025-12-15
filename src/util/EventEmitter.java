@@ -4,32 +4,36 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 // thread unsafe simple event emitter
-public class EventEmitter<T> {
-    private final Map<String, List<Consumer<T>>> listeners = new HashMap<>();
+public class EventEmitter<S, D> {
+    private final Map<String, List<BiConsumer<S, D>>> listeners = new HashMap<>();
 
-    public void on(String event, Consumer<T> listener) {
+    public void on(String event, BiConsumer<S, D> listener) { // adds to last
         listeners.computeIfAbsent(event, k -> new ArrayList<>()).add(listener);
     }
 
-    public void off(String event, Consumer<T> listener) {
-        List<Consumer<T>> list = listeners.get(event);
+    public void off(String event, BiConsumer<S, D> listener) {
+        List<BiConsumer<S, D>> list = listeners.get(event);
         if (list != null) {
-            list.remove(listener);
+            list.remove(listener); // removes first (FIFO)
             if (list.isEmpty()) {
                 listeners.remove(event);
             }
         }
     }
 
-    public void emit(String event, T data) {
-        List<Consumer<T>> list = listeners.get(event);
+    public void emit(String event, S sessionParam, D dataParam) {
+        List<BiConsumer<S, D>> list = listeners.get(event);
         if (list != null) {
-            for (Consumer<T> listener : list) {
-                listener.accept(data);
+            for (BiConsumer<S, D> listener : list) {
+                listener.accept(sessionParam, dataParam);
             }
         }
+    }
+
+    public boolean hasEvent(String event){
+        return this.listeners.containsKey(event);
     }
 }

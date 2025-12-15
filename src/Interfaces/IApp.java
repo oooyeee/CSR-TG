@@ -1,5 +1,5 @@
 package interfaces;
 
 public interface IApp {
-    public void start();
-} 
+    public void start(int port);
+}
