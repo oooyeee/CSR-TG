@@ -22,8 +22,8 @@ import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-import core.Bid;
-import core.Item;
+import core.Lance;
+import core.Leilao;
 
 import util.Log;
 
@@ -33,10 +33,10 @@ public class Test3 {
 
         byte[] hashBytes = "0123456789ABCDEF".repeat(2).getBytes();
 
-        Item item = new Item(123, "uma descricao qualquer", 5000);
+        Leilao item = new Leilao(123, "uma descricao qualquer", 5000);
         byte[] itemHash = item.getSha256Hash();
         Log.always(":: item hash length: " + itemHash.length);
-        Bid bid = new Bid(12, 1234, itemHash);
+        Lance bid = new Lance(12, 1234, itemHash);
 
         String bid_data_path = "res/bid_data.bin";
         byte[] serializedBid = bid.serialize();

@@ -9,7 +9,7 @@ import java.time.Instant;
 import util.Conversions;
 import util.Log;
 
-public class Item {
+public class Leilao {
     private static int idCounter = 0;
 
     private int itemID;
@@ -19,7 +19,7 @@ public class Item {
     private long createdAt;
     private long updatedAt;
 
-    public Item(int ownerID, String description, int startPrice) {
+    public Leilao(int ownerID, String description, int startPrice) {
         this.itemID = idCounter++;
         this.ownerID = ownerID;
         this.description = description;
@@ -28,7 +28,7 @@ public class Item {
         this.updatedAt = this.createdAt;
     }
 
-    private Item(int itemID,
+    private Leilao(int itemID,
             int ownerID,
             String description,
             int startPrice,
@@ -76,10 +76,10 @@ public class Item {
         return sb.toString();
     }
 
-    public static Item fromBytes(byte[] serializedBytes) {
+    public static Leilao fromBytes(byte[] serializedBytes) {
         ByteArrayInputStream bos = new ByteArrayInputStream(serializedBytes);
         DataInputStream in = new DataInputStream(bos);
-        Item item = null;
+        Leilao item = null;
         try {
             int itemID = in.readInt();
             int ownerID = in.readInt();
@@ -88,7 +88,7 @@ public class Item {
             long createdAt = in.readLong();
             long updatedAt = in.readLong();
 
-            item = new Item(itemID, ownerID, description, startPrice, createdAt, updatedAt);
+            item = new Leilao(itemID, ownerID, description, startPrice, createdAt, updatedAt);
         } catch (Exception e) {
             Log.error(e);
             return null;

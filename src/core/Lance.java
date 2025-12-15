@@ -10,7 +10,7 @@ import java.time.Instant;
 import util.Conversions;
 import util.Log;
 
-public class Bid {
+public class Lance {
     private static int idCounter = 0;
 
     protected final int leilaoID;
@@ -20,7 +20,7 @@ public class Bid {
     private long timestamp; // em ms
 
     // for creating new
-    public Bid(int itemID, int valor, byte[] itemHash) {
+    public Lance(int itemID, int valor, byte[] itemHash) {
         this.leilaoID = idCounter++;
         this.itemID = itemID;
         this.valor = valor;
@@ -29,7 +29,7 @@ public class Bid {
     }
 
     // for deserializaton
-    private Bid(int leilaoID, int itemID, byte[] itemHash, int valor, long timestamp) {
+    private Lance(int leilaoID, int itemID, byte[] itemHash, int valor, long timestamp) {
         this.leilaoID = leilaoID;
         this.itemID = itemID;
         this.itemHash = itemHash;
@@ -55,10 +55,10 @@ public class Bid {
         return bos.toByteArray();
     }
 
-    public static Bid fromBytes(byte[] serializedBytes) {
+    public static Lance fromBytes(byte[] serializedBytes) {
         ByteArrayInputStream bos = new ByteArrayInputStream(serializedBytes);
         DataInputStream in = new DataInputStream(bos);
-        Bid bid = null;
+        Lance bid = null;
         try {
             int leilaoID = in.readInt();
             int itemID = in.readInt();
@@ -67,7 +67,7 @@ public class Bid {
             int valor = in.readInt();
             long timestamp = in.readLong();
 
-            bid = new Bid(leilaoID, itemID, itemHash, valor, timestamp);
+            bid = new Lance(leilaoID, itemID, itemHash, valor, timestamp);
         } catch (Exception e) {
             Log.error(e);
             return null;

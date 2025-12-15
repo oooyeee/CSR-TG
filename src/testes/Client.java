@@ -42,7 +42,7 @@ public class Client {
 
     public static void main(String[] args) throws IOException {
         String host = "localhost";
-        int port = 1777;
+        int port = Constants.leiloesPort;
         Log.setLevel(4, false);
 
         Client client = new Client(host, port);
