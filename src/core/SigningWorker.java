@@ -31,7 +31,7 @@ public class SigningWorker extends Thread {
                 client.readFromSocket();
 
                 // 2. If secure and idle, send next SIGN request
-                if (client.isSecure() && !client.hasPendingRequest()) {
+                if (client.isSecure()) {
                     SignRequest req = queue.poll();
                     if (req != null) {
                         client.sendSignRequest(req.data, req.future);

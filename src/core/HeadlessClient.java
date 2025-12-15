@@ -48,7 +48,7 @@ public class HeadlessClient {
 
         this.pendingSignature = future;
 
-        Frame frame = new Frame(Frame.FrameType.BYTES.ordinal(), data.length, data);
+        Frame frame = new Frame(Frame.FrameType.STRING.ordinal(), data.length, data);
 
         sendBytes(Frame.getBytes(frame));
     }
