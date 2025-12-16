@@ -22,9 +22,22 @@ public class ServerOptions implements IServerOptions {
 
             Frame frame = Frame.toFrame(data);
 
+            if (frame.type != Frame.FrameType.STRING.ordinal()) {
+                return false;
+            }
+
             String msg = frame.getDataString();
 
             if (msg == null) {
+                return false;
+            }
+
+            if (msg.equals("")) {
+
+                return false;
+            }
+
+            if (msg.equals("\n")) {
                 return false;
             }
 

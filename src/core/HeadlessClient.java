@@ -11,12 +11,12 @@ import server.AESCipher;
 import server.Constants;
 import server.DHCipher;
 import server.Frame;
+import util.Conversions;
 import util.Log;
 
 public class HeadlessClient {
 
     private final SocketChannel socket;
-    private volatile boolean running = true;
     private DHCipher dh1;
     private DHCipher dh2;
     private AESCipher aes;
@@ -35,25 +35,24 @@ public class HeadlessClient {
 
         this.dh1 = null;
         this.dh2 = null;
-
         this.aes = null;
+        
         socket = SocketChannel.open(new InetSocketAddress(host, port));
         socket.configureBlocking(false);
     }
 
     public void sendSignRequest(byte[] data, CompletableFuture<byte[]> future) throws IOException {
         if (!isSecure) {
-            throw new IllegalStateException("Connection not secure");
+            Log.rare(":: should not be here");
+            throw new IllegalStateException(":: Connection not secure");
         }
 
         this.pendingSignature = future;
-
-        Frame frame = new Frame(Frame.FrameType.STRING.ordinal(), data.length, data);
-
-        sendBytes(Frame.getBytes(frame));
+        sendBytes(data);
     }
 
     private void sendBytes(byte[] data) throws IOException {
+        Log.info(":: data hex: " + Conversions.bytesToHex(data));
         writeBuffer.clear();
         Frame frame = Frame.toFrame(ByteBuffer.wrap(data));
         writeBuffer.clear();
@@ -69,6 +68,10 @@ public class HeadlessClient {
 
         while (writeBuffer.hasRemaining()) {
             Log.info(":: sending " + writeBuffer.remaining() + " bytes");
+            ByteBuffer temp = ByteBuffer.wrap(data);
+            // temp.put(writeBuffer.duplicate());
+            // temp.flip();
+            Log.info(":: frame data: " + Frame.toFrame(temp).getDataString());
             socket.write(writeBuffer);
         }
     }
@@ -96,6 +99,7 @@ public class HeadlessClient {
                 }
 
                 if (pendingSignature != null) {
+                    Log.warn(":: completing future in headless client thread");
                     pendingSignature.complete(readyBytes);
                     pendingSignature = null;
                 }

@@ -43,7 +43,7 @@ public class AESCipher {
         try {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
-            Log.debug(":: iv length: " + iv.getIV().length);
+            // Log.debug(":: iv length: " + iv.getIV().length);
 
             cipher.init(Cipher.DECRYPT_MODE, key, iv);
             byte[] encrypted = new byte[data.remaining()];

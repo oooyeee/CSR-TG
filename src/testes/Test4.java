@@ -1,6 +1,5 @@
 package testes;
 
-import core.AppFactory;
 import core.AppLeiloes;
 import interfaces.IApp;
 import server.Constants;

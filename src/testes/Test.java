@@ -61,8 +61,7 @@ public class Test {
                         Log.rare(":: could not handle received handshake");
                         return false;
                     }
-                    return sp.handle_send_hanshake(session); // after 2 dh exchanges, at step 3 this generates AES and
-                                                             // sets session to secure
+                    return sp.handle_send_hanshake(session); // after 2 dh exchanges, at step 3 this generates AES and sets session to secure
                 }
                 sp.decode(session, data);
                 return true;
@@ -84,7 +83,7 @@ public class Test {
                     if (session.getWriteState() != WriteState.READY) {
                         session.setWriteState(IClientSession.WriteState.READY);
                         return false;
-                    } else { // secure and ready
+                    } else { // secure and ready, continue chain
 
                         return true;
                     }
@@ -96,10 +95,11 @@ public class Test {
             options.addToReadChain((session, data) -> {
                 Frame frame = Frame.toFrame(data);
 
-                if(frame.type == Frame.FrameType.STRING.ordinal()){
+                if (frame.type == Frame.FrameType.STRING.ordinal()) {
                     Log.debug("[" + session.clientID() + "]: " + frame.getDataString());
                 } else {
-                    Log.debug("[" + session.clientID() + "] sent " + Frame.FrameType.values()[frame.type].name() + " with " + frame.data.length + " bytes of data");
+                    Log.debug("[" + session.clientID() + "] sent " + Frame.FrameType.values()[frame.type].name() + " with " + frame.data.length
+                            + " bytes of data");
                 }
                 return true;
             });
@@ -157,7 +157,7 @@ public class Test {
         return false;
     }
 
-    public static void testLogs(){
+    public static void testLogs() {
         Log.info(":: info");
         Log.warn(":: warn");
         Log.error(":: error");

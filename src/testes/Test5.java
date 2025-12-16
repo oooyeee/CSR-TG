@@ -1,8 +1,6 @@
 package testes;
 
 import core.AppCA;
-import core.AppFactory;
-import interfaces.IApp;
 import server.Constants;
 
 public class Test5 {

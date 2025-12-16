@@ -17,7 +17,8 @@ public class CommandRouter implements ICommandRouter {
         this.fallbackCommand = (session, msg) -> {
             Log.always(":: Unsupported command from client [" + session.clientID() + "]");
 
-            Frame frame = new Frame(Frame.FrameType.STRING.ordinal(), msg.length(), msg.getBytes());
+            String responseMessage = "Unsupported command: " + msg;
+            Frame frame = new Frame(Frame.FrameType.STRING.ordinal(), responseMessage.length(), responseMessage.getBytes());
 
             Log.always(frame.toString());
             ByteBuffer buffer = ByteBuffer.allocate(Constants.bufferSize);
@@ -74,4 +75,14 @@ public class CommandRouter implements ICommandRouter {
         }
     }
 
+        public void writeError(IClientSession session, String message) {
+        try {
+            String errorMessage = "error: " + message;
+            Frame frame = new Frame(Frame.FrameType.STRING.ordinal(), errorMessage.length(), errorMessage.getBytes());
+
+            this.write(session, frame);
+        } catch (Exception e) {
+            Log.error(e);
+        }
+    }
 }

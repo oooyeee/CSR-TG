@@ -14,18 +14,13 @@ javac -Xdiags:verbose -Xlint:unchecked -d out $java_files
 # sleep 1
 
 # java -cp out testes.NioClient
-# java -cp out testes.Test4
+java -cp out testes.Test4
 
 # echo $pwd
 
-wt --size "240,24" `
-    -d $pwd pwsh -c "java -cp out testes.Test5" `; `
-    split-pane -V -s 0.68 -d $pwd pwsh -c "sleep 1.25 && java -cp out testes.Test4" `; `
-    split-pane -V -s 0.5 -d $pwd pwsh -c "sleep 2.6 && java -cp out testes.Client" `
+# wt --size "190,20" `
+#     -d $pwd pwsh -c "java -cp out testes.Test" `; `
+#     split-pane -V -d $pwd pwsh -c "sleep 1 && java -cp out testes.Client" `
 
 # wt -d $pwd pwsh -c "java -cp out testes.Test3" `; `
 #     split-pane -V -d $pwd pwsh -c "sleep 1 && java -cp out testes.Client" `
-
-# wt --size "190,24" `
-#     -d $pwd pwsh -c "java -cp out testes.Test4" `; `
-#     split-pane -V -s 0.5 -d $pwd pwsh -c "sleep 1.25 && java -cp out testes.Client" `

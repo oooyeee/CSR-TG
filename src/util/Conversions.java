@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 public class Conversions {
 
@@ -69,9 +70,14 @@ public class Conversions {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault());
     }
 
-     public static byte[] getSHA256Hash(byte[] data) {
+    public static long getTimeNow(int addMinutes) {
+        long millis = Instant.now().plus(1, ChronoUnit.MINUTES).toEpochMilli();
+        return millis;
+    }
+
+    public static byte[] getSHA256Hash(byte[] data) {
         byte[] hash;
-        try{
+        try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             digest.update(data);
             hash = digest.digest();
@@ -81,5 +87,5 @@ public class Conversions {
         }
 
         return hash;
-     }
+    }
 }

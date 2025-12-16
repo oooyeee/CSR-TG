@@ -14,7 +14,7 @@ public class ClientSession implements IClientSession {
 
     private static long idCount = 0;
     private IMiddlewareList writeChain;
-    private boolean isTrusted = false;
+    private int userID = -1;
 
     public static String getNewID() {
         return String.valueOf(idCount++);
@@ -57,7 +57,8 @@ public class ClientSession implements IClientSession {
     }
 
     @Override
-    public void write(ByteBuffer buffer) throws IOException { // dont use to Frame.toFrame here, because buffer may be encoded
+    public void write(ByteBuffer buffer) throws IOException { // dont use to Frame.toFrame here, because buffer may be
+                                                              // encoded
         IMiddlewareNode current = this.writeChain.head();
         boolean result = true;
         while (current != null) {
@@ -96,7 +97,7 @@ public class ClientSession implements IClientSession {
         return this.sesionState;
     }
 
-        @Override
+    @Override
     public WriteState getWriteState() {
         return this.writeState;
     }
@@ -112,7 +113,7 @@ public class ClientSession implements IClientSession {
     }
 
     @Override
-    public void setWriteState(WriteState newState){
+    public void setWriteState(WriteState newState) {
         this.writeState = newState;
     }
 
@@ -121,10 +122,18 @@ public class ClientSession implements IClientSession {
         return this.readBuffer;
     }
 
-    public boolean isTrusted(){
-        return this.isTrusted;
+    @Override
+    public boolean isAuthenticated() {
+        return this.userID >= 0;
     }
-    public void setTrusted(boolean value){
-        this.isTrusted = value;
+
+    @Override
+    public void setAuthentication(int userID) {
+        this.userID = userID;
+    }
+
+    @Override
+    public int getAuthID() {
+        return this.userID;
     }
 }

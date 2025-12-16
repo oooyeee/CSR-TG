@@ -24,11 +24,11 @@ public class EventEmitter<S, D> {
         }
     }
 
-    public void emit(String event, S sessionParam, D dataParam) {
+    public void emit(String event, S sessionObj, D dataObj) {
         List<BiConsumer<S, D>> list = listeners.get(event);
         if (list != null) {
             for (BiConsumer<S, D> listener : list) {
-                listener.accept(sessionParam, dataParam);
+                listener.accept(sessionObj, dataObj);
             }
         }
     }

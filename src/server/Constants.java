@@ -22,6 +22,22 @@ public class Constants {
     public static final String leiloesKeyPath = "res/leiloes.key";
     public static final String leiloesPassword = "pass";
 
+    public static final String joaoCertPath = "res/joao.crt";
+    public static final String joaoKeyPath = "res/joao.key";
+    public static final String joaoPassword = "password";
+
+    public static final String mariaCertPath = "res/maria.crt";
+    public static final String mariaKeyPath = "res/maria.key";
+    public static final String mariaPassword = "password";
+
+    public static final String horacioCertPath = "res/horacio.crt";
+    public static final String horacioKeyPath = "res/horacio.key";
+    public static final String horacioPassword = "password";
+
+    public static final String conceicaoCertPath = "res/conceicao.crt";
+    public static final String conceicaoKeyPath = "res/conceicao.key";
+    public static final String conceicaoPassword = "password";
+
     public static final int leiloesPort = 1777;
     public static final int signerPort = 1888;
 }

@@ -23,8 +23,9 @@ public interface IClientSession {
     public void setSecureState(SessionState newState);
     public void setWriteState(WriteState newState);
 
-    public boolean isTrusted();
-    public void setTrusted(boolean value);
+    public boolean isAuthenticated();
+    public void setAuthentication(int userID);
+    public int getAuthID();
 
     public static enum SessionState {
         NEED_HANDSHAKE,

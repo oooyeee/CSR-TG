@@ -29,3 +29,4 @@ replay_pid*
 *.ini
 out/
 junk/
+eclipse-formatter.xml

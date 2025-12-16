@@ -23,7 +23,8 @@ public class Frame {
         NESTED, // array: T_L=n_V=[T1L1V1,T2V2L2,...,TnVnLn]
         HANDSHAKE, // TLV
         NESTED_HANDSHAKE, // array: T_L=n_V=[T1L1V1,T2V2L2,...,TnVnLn]
-        BYTES //TLV
+        BYTES, //TLV
+        EXTENDED // mixed
     }
 
     public static String whatType(Frame frame) {
@@ -39,7 +40,7 @@ public class Frame {
             case 4:
                 return "BYTES";
             default:
-                return "UNKNOWN";
+                return "EXTENDED";
         }
     }
 
@@ -67,6 +68,11 @@ public class Frame {
         buf.position(8);
         buf.get(frame.data);
 
+        return frame;
+    }
+
+    public static Frame toFrame(String str) {
+        Frame frame = new Frame(Frame.FrameType.STRING.ordinal(), str.length(), str.getBytes());
         return frame;
     }
 

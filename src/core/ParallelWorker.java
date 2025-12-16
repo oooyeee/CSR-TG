@@ -7,12 +7,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import util.Log;
 
-public class SigningWorker extends Thread {
+public class ParallelWorker extends Thread {
 
     private final BlockingQueue<SignRequest> queue = new LinkedBlockingQueue<>();
     private final HeadlessClient client;
 
-    public SigningWorker(String host, int port) throws IOException {
+    public ParallelWorker(String host, int port) throws IOException {
         this.client = new HeadlessClient(host, port);
         start();
     }
@@ -27,10 +27,8 @@ public class SigningWorker extends Thread {
     public void run() {
         while (true) {
             try {
-                // 1. Drive network (handshake OR secure traffic)
                 client.readFromSocket();
 
-                // 2. If secure and idle, send next SIGN request
                 if (client.isSecure()) {
                     SignRequest req = queue.poll();
                     if (req != null) {

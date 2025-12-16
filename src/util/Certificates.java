@@ -1,5 +1,7 @@
 package util;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -67,16 +69,36 @@ public class Certificates {
         return signature.sign();
     }
 
-    public static boolean verifySignature(
-            byte[] data,
-            byte[] signatureBytes,
-            String certificatePath) throws Exception {
+    public static boolean verifySignature(byte[] data, byte[] signatureBytes, String certificatePath) throws Exception {
 
         // Load X.509 certificate
         X509Certificate certificate;
         try (FileInputStream fis = new FileInputStream(certificatePath)) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             certificate = (X509Certificate) cf.generateCertificate(fis);
+        }
+
+        // Initialize verifier
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initVerify(certificate.getPublicKey());
+        signature.update(data);
+
+        // Verify signature
+        return signature.verify(signatureBytes);
+    }
+
+    public static boolean verifySignature(byte[] data, byte[] signatureBytes, byte[] certBytes) throws Exception {
+        Log.debug(":: certbytes length: " + certBytes.length);
+        // Load X.509 certificate
+        X509Certificate certificate;
+        try (InputStream bis = new ByteArrayInputStream(certBytes)) {
+            // InputStream dis = new InputStream(bis);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            certificate = (X509Certificate) cf.generateCertificate(bis);
+        } catch (Exception e) {
+            Log.error(e);
+            e.printStackTrace();
+            return false;
         }
 
         // Initialize verifier

@@ -24,7 +24,6 @@ import javax.crypto.spec.PBEKeySpec;
 
 import core.Lance;
 import core.Leilao;
-
 import util.Log;
 
 public class Test3 {
@@ -33,10 +32,10 @@ public class Test3 {
 
         byte[] hashBytes = "0123456789ABCDEF".repeat(2).getBytes();
 
-        Leilao item = new Leilao(123, "uma descricao qualquer", 5000);
+        Leilao item = new Leilao(123, "uma descricao qualquer", 5000, "ok", 99999);
         byte[] itemHash = item.getSha256Hash();
         Log.always(":: item hash length: " + itemHash.length);
-        Lance bid = new Lance(12, 1234, itemHash);
+        Lance bid = new Lance(12, 1, 1234, itemHash, itemHash);
 
         String bid_data_path = "res/bid_data.bin";
         byte[] serializedBid = bid.serialize();

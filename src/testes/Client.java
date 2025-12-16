@@ -6,11 +6,16 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Scanner;
+import java.util.UUID;
+import java.util.function.Consumer;
+
 import server.AESCipher;
 import server.Constants;
 import server.DHCipher;
 import server.Frame;
+import util.Certificates;
 import util.Log;
 
 public class Client {
@@ -24,10 +29,14 @@ public class Client {
     private ByteBuffer writeBuffer;
     private boolean isSecure;
     private boolean isHandshaking;
+    private boolean isTrusted;
+    private String nonce;
+    // private Consumer<byte[]> pendingAction;
 
     public Client(String host, int port) throws IOException {
         this.isSecure = false;
         this.isHandshaking = false;
+        this.isTrusted = false;
         this.readBuffer = ByteBuffer.allocate(Constants.bufferSize);
         this.writeBuffer = ByteBuffer.allocate(Constants.bufferSize);
 
@@ -38,12 +47,14 @@ public class Client {
         socket = SocketChannel.open(new InetSocketAddress(host, port));
         socket.configureBlocking(false);
 
+        this.nonce = null;
+        // this.pendingAction = null;
     }
 
     public static void main(String[] args) throws IOException {
         String host = "localhost";
         int port = Constants.leiloesPort;
-        Log.setLevel(4, false);
+        Log.setLevel(0, false);
 
         Client client = new Client(host, port);
         client.start();
@@ -108,7 +119,6 @@ public class Client {
         }
     }
 
-
     private void readFromSocket() {
         while (running) {
             try {
@@ -127,6 +137,20 @@ public class Client {
 
                     Frame tempFrame = Frame.toFrame(ByteBuffer.wrap(readyBytes));
 
+                    if (!isTrusted && tempFrame.type == Frame.FrameType.STRING.ordinal()) {
+                        // Log.warn(":: frame is string");
+                        if (verifyIfTrustFrame(tempFrame)) { // tests response from pending action
+                            this.isTrusted = true;
+                            Log.debug(":: verified, then continue loop");
+                            continue;
+                        } else {
+                            Log.error(":: Nao posso confiar no servidor ::");
+                            Log.rare(":: exiting ::");
+                            System.exit(1);
+                        }
+
+                    }
+
                     Log.always(">> " + tempFrame.getDataString());
 
                     // Handshake Phase
@@ -135,6 +159,11 @@ public class Client {
                         handleHandshake(readyBytes);
                         continue;
                     }
+
+                    // if (this.pendingAction != null) {
+                    // this.pendingAction.accept(readyBytes);
+                    // this.pendingAction = null;
+                    // }
 
                 } else if (bytesRead == -1) {
                     // Log.info("Server closed connection");
@@ -153,7 +182,8 @@ public class Client {
         }
     }
 
-    public void handleHandshake(byte[] incoming) { // recieves HANDSHAKE with NESTED TLV, SENDS HANDSHAKE with simple TLV (only pubkey)
+    public void handleHandshake(byte[] incoming) { // recieves HANDSHAKE with NESTED TLV, SENDS HANDSHAKE with simple
+                                                   // TLV (only pubkey)
         Frame frame = Frame.toFrame(ByteBuffer.wrap(incoming));
 
         if (!isHandshaking) {
@@ -195,7 +225,6 @@ public class Client {
                 foreignPubKeyFrame.data = new byte[foreignPubKeyFrame.length];
 
                 buffer.get(foreignPubKeyFrame.data);
-                
 
                 this.dh1 = new DHCipher(new BigInteger(primeFrame.data), new BigInteger(generatorFrame.data));
                 this.dh1.generateResult(foreignPubKeyFrame.data);
@@ -258,6 +287,24 @@ public class Client {
                     this.isSecure = true;
                     isHandshaking = false;
                     Log.debug(":: phase 3 finished, AES DONE ::");
+
+                    // this.pendingAction = ((incomingBytes) -> {
+                    Log.debug(":: continuing with Nonce");
+                    Frame requestVerifyCertFrame = new Frame(Frame.FrameType.STRING.ordinal(), 0, null);
+                    String nonce = UUID.randomUUID().toString();
+                    this.nonce = nonce;
+                    String reqString = "_TRUST_ " + nonce;
+                    requestVerifyCertFrame.data = reqString.getBytes();
+                    requestVerifyCertFrame.length = requestVerifyCertFrame.data.length;
+                    try {
+                        sendBytes(Frame.getBytes(requestVerifyCertFrame));
+                        Log.debug(":: phase 3.5 finished, Trust nonse sent::");
+                    } catch (Exception e) {
+                        Log.error(e);
+                        e.printStackTrace();
+                    }
+                    // });
+
                     return;
                 }
 
@@ -271,6 +318,43 @@ public class Client {
         }
         Log.rare(":: in handleHandshake, should not be here");
         return;
+    }
+
+    private boolean verifyIfTrustFrame(Frame frame) {
+        try {
+            String str = new String(frame.data);
+
+            // Log.rare(":: data str: " + str);
+
+            int i = str.indexOf(' ');
+            String command = (i == -1) ? str : str.substring(0, i);
+            // msg is base64 encoded words = certificate + nonce_encoded, space separated
+            String msg = (i == -1) ? "" : str.substring(i + 1);
+
+            Log.warn(":: command: " + command);
+            if (!command.equalsIgnoreCase("TRUST")) {
+                return false;
+            }
+
+            i = msg.indexOf(' ');
+            String serverCertBase64 = (i == -1) ? msg : msg.substring(0, i);
+            String base64EncodedNonce = (i == -1) ? "" : msg.substring(i + 1);
+
+            // Log.warn(":: data: " + serverCertBase64 + " || " + base64EncodedNonce);
+
+            byte[] cert = Base64.getDecoder().decode(serverCertBase64);
+            byte[] signature = Base64.getDecoder().decode(base64EncodedNonce);
+            boolean result = Certificates.verifySignature(this.nonce.getBytes(), signature, cert);
+            Log.debug(":: verify result: " + result);
+
+            return result;
+        } catch (Exception e) {
+            Log.error(":: something wrong with string parsing");
+            Log.error(e);
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
 }

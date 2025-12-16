@@ -53,10 +53,27 @@ public class AppCA implements IApp {
             Validator validator = new Validator();
             CommandRouter router = new CommandRouter();
 
+            Repositorio<RevokedCert> crl = new Repositorio<>();
+
             router.onCommand("SIGN", (session, msg) -> {
                 Log.debug(":: /SIGN: " + msg);
-                Frame frame = new Frame(Frame.FrameType.STRING.ordinal(), msg.length(), msg.getBytes());
+                Frame frame = new Frame(Frame.FrameType.STRING.ordinal(), 0, null);
+                String message = "hello from sign, your text: " + msg;
+                frame.data = message.getBytes();
+                frame.length = frame.data.length;
+                Log.debug(frame.toString());
+                // ByteBuffer buffer = ByteBuffer.allocate(Constants.bufferSize);
+                ByteBuffer buffer = session.getReadBuffer();
+                frame.putIn(buffer);
 
+                router.write(session, buffer);
+            });
+
+            router.onCommand("CRL", (session, msg) -> {
+                Log.debug(":: /CRL: " + msg);
+                Frame frame = new Frame(Frame.FrameType.STRING.ordinal(), 0, null);
+                frame.data = "hello from sign".getBytes();
+                frame.length = frame.data.length;
                 Log.debug(frame.toString());
                 // ByteBuffer buffer = ByteBuffer.allocate(Constants.bufferSize);
                 ByteBuffer buffer = session.getReadBuffer();

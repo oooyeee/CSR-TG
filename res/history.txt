@@ -1,0 +1,26 @@
+openssl genrsa -out rootCA.key 4096
+
+
+openssl genrsa -aes256 -out rootCA.key 4096
+openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 720 -out rootCA.crt
+openssl x509 -in rootCA.crt -noout -text
+
+openssl genrsa -aes256 -out leiloes.key 2048
+openssl req -new -key leiloes.key -out leiloes.csr
+openssl x509 -req -in leiloes.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -days 365 -sha256 -out leiloes.crt
+openssl verify -CAfile rootCA.crt leiloes.crt
+
+openssl genrsa -aes256 -out signer.key 2048
+openssl req -new -key signer.key -out signer.csr
+openssl x509 -req -in signer.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -days 365 -sha256 -out signer.crt
+openssl verify -CAfile rootCA.crt signer.crt
+
+openssl x509 -in signer.crt -pubkey -noout > signer_pubkey.pem
+openssl dgst -sha256 -verify signer_pubkey.pem -signature signature.bin
+openssl dgst -sha256 -verify signer_pubkey.pem -signature signature.bin bid_data.bin
+
+
+
+openssl verify -CAfile rootCA.crt -untrusted signer.crt joao.crt
+
+openssl x509 -in intermediate.crt -noout -text | grep -A2 "Distribution"
